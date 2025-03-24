@@ -1,0 +1,6 @@
+@CrazyLibraryAPI_HostAddress = http://localhost:5296
+
+GET {{CrazyLibraryAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
