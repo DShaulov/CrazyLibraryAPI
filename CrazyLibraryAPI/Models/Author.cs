@@ -14,6 +14,8 @@ namespace CrazyLibraryAPI.Models
 
         [StringLength(50)]
         public string LastName { get; set; }
+        [StringLength(2000)]
+        public string Biography { get; set; }
 
         public ICollection<Book> Books { get; set; }
     }

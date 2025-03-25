@@ -12,6 +12,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<LibraryDataImportService>();
+builder.Services.AddScoped<CustomerService>();
+builder.Services.AddScoped<BorrowService>();
 builder.Services.AddDbContext<LibraryDbContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");

@@ -28,5 +28,9 @@ namespace CrazyLibraryAPI.Models
 
         [StringLength(100)]
         public string LibraryCallNumber { get; set; }
+
+        public int TotalCopies { get; set; }
+
+        public int CopiesAvailable { get; set; }
     }
 }

@@ -9,6 +9,7 @@ namespace CrazyLibraryAPI.Services
     {
         private readonly LibraryDbContext _context;
         private readonly ILogger<LibraryDataImportService> _logger;
+        private readonly Random _random = new Random();
 
         public LibraryDataImportService(LibraryDbContext context, ILogger<LibraryDataImportService> logger)
         {
@@ -57,10 +58,23 @@ namespace CrazyLibraryAPI.Services
                 var literaryCreation = bookElement.GetProperty("LiteraryCreation");
                 string bookUniqueId = literaryCreation.GetProperty("UniqueID").GetString();
                 string title = literaryCreation.GetProperty("Title").GetString();
-                string description = literaryCreation.GetProperty("Description").GetString();
-                DateTime publicationDate = bookElement.GetProperty("PublicationDate").GetDateTime();
-                string imageUrl = bookElement.GetProperty("ImageUrl").GetString();
+                string description = "";
+                if (literaryCreation.TryGetProperty("Description", out var descriptionElement) &&
+                    !descriptionElement.ValueKind.Equals(JsonValueKind.Null))
+                {
+                    description = descriptionElement.GetString();
+                }
+                DateTime publicationDate = new DateTime(2000, 1, 1, 0, 0, 0);
+                if (bookElement.TryGetProperty("PublicationDate", out var dateElement) &&
+                    !dateElement.ValueKind.Equals(JsonValueKind.Null))
+                {
+                    publicationDate = dateElement.GetDateTime();
+                }
+                string imageUrl = bookElement.GetProperty("Image_url").GetString();
                 string callNumber = bookElement.GetProperty("LibraryCallNumber").GetString();
+                // Choose random number of copies and available copies
+                int totalCopies = _random.Next(5, 15);
+                int copiesAvailable = _random.Next(0, totalCopies);
 
                 // Process Customer data
                 string passport = customerElement.GetProperty("Passport").GetString();
@@ -80,28 +94,21 @@ namespace CrazyLibraryAPI.Services
                     authorNameElement.ValueKind != JsonValueKind.Null)
                 {
                     string authorName = authorNameElement.GetString();
-                    string authFirstName = null;
-                    string authLastName = null;
+                    var nameParts = authorName.Split(' ', 2);
 
-                    // Split author name into first and last name
-                    if (!string.IsNullOrEmpty(authorName))
-                    {
-                        var nameParts = authorName.Split(' ', 2);
-                        authFirstName = nameParts[0];
-                        authLastName = nameParts.Length > 1 ? nameParts[1] : "";
-                        author = await GetOrCreateAuthor(authFirstName, authLastName);
-                    }
-                    else
-                    {
-                        // Create an author with unknown name
-                        author = await GetOrCreateAuthor("Unknown", "");
-
-                    }
+                    string authFirstName = nameParts[0];
+                    string authLastName = nameParts.Length > 1 ? nameParts[1] : "";
+                    author = await GetOrCreateAuthor(authFirstName, authLastName, "");
+                }
+                else
+                {
+                    // Create an author with unknown name
+                    author = await GetOrCreateAuthor("Unknown", "", "");
                 }
 
                 // Get or create the book
                 var book = await GetOrCreateBook(bookUniqueId, title, description, author.Id,
-                    publicationDate, imageUrl, callNumber);
+                    publicationDate, imageUrl, callNumber, totalCopies, copiesAvailable);
 
                 // Get or create the customer
                 var customer = await GetOrCreateCustomer(passport, firstName, lastName, address,
@@ -117,20 +124,24 @@ namespace CrazyLibraryAPI.Services
             }
         }
 
-        private async Task<Author> GetOrCreateAuthor(string firstName, string lastName)
+        private async Task<Author> GetOrCreateAuthor(string firstName, string lastName, string biography)
         {
             // Look for existing author with the same name
             var existingAuthor = await _context.Authors
-                .FindAsync(firstName, lastName);
+                .FirstOrDefaultAsync(a => a.FirstName == firstName && a.LastName == lastName && a.Biography == biography);
+
 
             if (existingAuthor != null)
+            {
                 return existingAuthor;
 
+            }
             // Create a new author
             var author = new Author
             {
                 FirstName = firstName,
-                LastName = lastName
+                LastName = lastName,
+                Biography = biography
             };
 
             await _context.Authors.AddAsync(author);
@@ -170,7 +181,7 @@ namespace CrazyLibraryAPI.Services
         }
 
         private async Task<Book> GetOrCreateBook(string uniqueId, string title, string description,
-            int authorId, DateTime publicationDate, string imageUrl, string callNumber)
+            int authorId, DateTime publicationDate, string imageUrl, string callNumber, int totalCopies, int copiesAvailable)
         {
             // Look for existing book
             var existingBook = await _context.Books.FindAsync(uniqueId);
@@ -187,7 +198,9 @@ namespace CrazyLibraryAPI.Services
                 AuthorId = authorId,
                 PublicationDate = publicationDate,
                 Image_url = imageUrl,
-                LibraryCallNumber = callNumber
+                LibraryCallNumber = callNumber,
+                TotalCopies = totalCopies,
+                CopiesAvailable = copiesAvailable
             };
 
             await _context.Books.AddAsync(book);

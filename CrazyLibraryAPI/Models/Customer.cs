@@ -18,7 +18,7 @@ namespace CrazyLibraryAPI.Models
         [StringLength(100)]
         public string Address { get; set; }
 
-        [StringLength(50)]
+        [StringLength(200)]
         public string City { get; set; }
 
         [StringLength(50)]
