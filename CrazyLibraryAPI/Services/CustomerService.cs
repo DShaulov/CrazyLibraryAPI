@@ -15,30 +15,36 @@ namespace CrazyLibraryAPI.Services
 
         public async Task<IEnumerable<Customer>> SearchCustomersAsync(string firstName, string lastName, string phone, string identity)
         {
-            // Start with all customers
-            IQueryable<Customer> query = _context.Customers.Where(c => true);
+            // Create an empty result set
+            IQueryable<Customer> result = _context.Customers.Where(c => false);
 
+            // Check if each search parameter is provided and add the query to the result set
             if (!string.IsNullOrEmpty(firstName))
             {
-                query = query.Where(c => c.FirstName.StartsWith(firstName));
+                IQueryable<Customer> firstNameQuery = _context.Customers.Where(c => c.FirstName.StartsWith(firstName));
+                result = result.Union(firstNameQuery);
             }
 
             if (!string.IsNullOrEmpty(lastName))
             {
-                query = query.Where(c => c.LastName.StartsWith(lastName));
+                IQueryable<Customer> lastNameQuery = _context.Customers.Where(c => c.LastName.StartsWith(lastName));
+                result = result.Union(lastNameQuery);
             }
 
             if (!string.IsNullOrEmpty(phone))
             {
-                query = query.Where(c => c.PhoneNumber.StartsWith(phone));
+                IQueryable<Customer> phoneQuery = _context.Customers.Where(c => c.PhoneNumber.StartsWith(phone));
+                result = result.Union(phoneQuery);
             }
 
             if (!string.IsNullOrEmpty(identity))
             {
-                query = query.Where(c => c.Passport.StartsWith(identity));
+                IQueryable<Customer> identityQuery = _context.Customers.Where(c => c.Passport.StartsWith(identity));
+                result = result.Union(identityQuery);
             }
 
-            return await query.ToListAsync();
+            return await result.ToListAsync();
+
         }
     }
 }

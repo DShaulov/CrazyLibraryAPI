@@ -24,7 +24,6 @@ namespace CrazyLibraryAPI.Services
                 // Read the JSON file
                 string jsonContent = await File.ReadAllTextAsync(filePath);
 
-                // Deserialize the JSON content
                 using (JsonDocument doc = JsonDocument.Parse(jsonContent))
                 {
                     foreach (JsonElement element in doc.RootElement.EnumerateArray())
@@ -102,19 +101,16 @@ namespace CrazyLibraryAPI.Services
                 }
                 else
                 {
-                    // Create an author with unknown name
+                    // If author has no name, create an author with unknown name
                     author = await GetOrCreateAuthor("Unknown", "", "");
                 }
 
-                // Get or create the book
                 var book = await GetOrCreateBook(bookUniqueId, title, description, author.Id,
                     publicationDate, imageUrl, callNumber, totalCopies, copiesAvailable);
 
-                // Get or create the customer
                 var customer = await GetOrCreateCustomer(passport, firstName, lastName, address,
                     city, email, phoneNumber, zip, birthDate);
 
-                // Get or create the book history entry
                 await GetOrCreateBookHistory(bookUniqueId, passport, actionDateTime, actionType);
             }
             catch (Exception ex)

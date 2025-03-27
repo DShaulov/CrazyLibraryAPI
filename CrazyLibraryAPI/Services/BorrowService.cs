@@ -36,7 +36,7 @@ namespace CrazyLibraryAPI.Services
                 // For each book, get all actions sorted by date
                 var bookActions = bookGroup.OrderByDescending(history => history.DateTime).ToList();
 
-                // Check if the most recent action is "Borrowed"
+                // Check if the most recent action is "Borrow"
                 var mostRecentAction = bookActions.First();
                 bool isCurrentlyBorrowed = mostRecentAction.Action == "Borrow";
 
