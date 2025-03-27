@@ -29,7 +29,7 @@ namespace CrazyLibraryAPI.Models
 
         [Required]
         [StringLength(20)]
-        public string Action { get; set; }  // "Borrowed" or "Returned"
+        public string Action { get; set; }  // "Borrow" or "Return"
 
     }
 }

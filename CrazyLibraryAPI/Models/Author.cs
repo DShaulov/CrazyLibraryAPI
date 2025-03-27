@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace CrazyLibraryAPI.Models
 {
@@ -17,6 +18,7 @@ namespace CrazyLibraryAPI.Models
         [StringLength(2000)]
         public string Biography { get; set; }
 
+        [JsonIgnore]
         public ICollection<Book> Books { get; set; }
     }
 }

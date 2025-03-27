@@ -14,6 +14,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<LibraryDataImportService>();
 builder.Services.AddScoped<CustomerService>();
 builder.Services.AddScoped<BorrowService>();
+builder.Services.AddScoped<BookService>();
 builder.Services.AddDbContext<LibraryDbContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
