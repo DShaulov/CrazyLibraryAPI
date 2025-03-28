@@ -1,5 +1,7 @@
 ﻿using CrazyLibraryAPI.Data;
 using CrazyLibraryAPI.Models;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace CrazyLibraryAPI.Services
@@ -27,6 +29,7 @@ namespace CrazyLibraryAPI.Services
             var allCustomerBookHistory = _context.BookHistories
                 .Where(bh => bh.CustomerPassport == identity)
                 .Include(bh => bh.Book)
+                .ThenInclude(b => b.Author) // Nested include - include the books author
                 .ToList();
 
             var bookHistoryByBookId = allCustomerBookHistory.GroupBy(history => history.BookUniqueID);
@@ -58,6 +61,95 @@ namespace CrazyLibraryAPI.Services
             }
 
             return currentlyBorrowedBooks;
+        }
+
+        public async Task<(bool Success, string Message)> BorrowBookAsync(string bookUniqueID, string customerPassport)
+        {
+            var book = await _context.Books
+                .FirstOrDefaultAsync(b => b.UniqueID == bookUniqueID);
+
+            if (book == null)
+            {
+                return (false, "Book not found.");
+            }
+
+            var customerExists = await _context.Customers
+                .AnyAsync(c => c.Passport == customerPassport);
+
+            if (!customerExists)
+            {
+                return (false, "Customer not found.");
+            }
+
+            if (book.CopiesAvailable <= 0)
+            {
+                return (false, "No copies available for borrowing.");
+            }
+
+            book.CopiesAvailable--;
+
+            // Create book history table entry
+            var bookHistory = new BookHistory
+            {
+                BookUniqueID = bookUniqueID,
+                CustomerPassport = customerPassport,
+                DateTime = DateTime.UtcNow,
+                Action = "Borrow"
+            };
+
+            _context.BookHistories.Add(bookHistory);
+
+            await _context.SaveChangesAsync();
+
+            return (true, "Book borrowed successfully.");
+        }
+
+
+        public async Task<(bool Success, string Message)> ReturnBookAsync(string bookUniqueID, string customerPassport)
+        {
+            var book = await _context.Books
+                .FirstOrDefaultAsync(b => b.UniqueID == bookUniqueID);
+
+            if (book == null)
+            {
+                return (false, "Book not found.");
+            }
+
+            var customerExists = await _context.Customers
+                .AnyAsync(c => c.Passport == customerPassport);
+
+            if (!customerExists)
+            {
+                return (false, "Customer not found.");
+            }
+
+            // Check if the customer has actually borrowed this book
+            var latestHistory = await _context.BookHistories
+                .Where(bh => bh.BookUniqueID == bookUniqueID && bh.CustomerPassport == customerPassport)
+                .OrderByDescending(bh => bh.DateTime)
+                .FirstOrDefaultAsync();
+
+            if (latestHistory == null || latestHistory.Action != "Borrow")
+            {
+                return (false, "This book is not currently borrowed by this customer.");
+            }
+
+            book.CopiesAvailable++;
+
+            // Create book history entry for return
+            var bookHistory = new BookHistory
+            {
+                BookUniqueID = bookUniqueID,
+                CustomerPassport = customerPassport,
+                DateTime = DateTime.UtcNow,
+                Action = "Return"
+            };
+
+            _context.BookHistories.Add(bookHistory);
+
+            await _context.SaveChangesAsync();
+
+            return (true, "Book returned successfully.");
         }
     }
 }

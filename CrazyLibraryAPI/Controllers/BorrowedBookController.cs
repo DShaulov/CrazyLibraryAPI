@@ -14,7 +14,7 @@ namespace CrazyLibraryAPI.Controllers
             _borrowService = borrowService;
         }
 
-        [HttpPost]
+        [HttpPost("search")]
         public async Task<ActionResult<IEnumerable<BorrowedBookModel>>> Search(string identity)
         {
             if (string.IsNullOrEmpty(identity))
@@ -27,6 +27,36 @@ namespace CrazyLibraryAPI.Controllers
                 return NotFound("No borrowed books found for the customer");
             }
             return Ok(borrowedBooks);
+        }
+
+        [HttpPost("borrow")]
+        public async Task<ActionResult> Borrow(string bookUniqueID, string customerPassport)
+        {
+            if (string.IsNullOrEmpty(bookUniqueID) || string.IsNullOrEmpty(customerPassport))
+            {
+                return BadRequest("BookUniqueID and CustomerPassport cannot be empty");
+            }
+            var result = await _borrowService.BorrowBookAsync(bookUniqueID, customerPassport);
+            if (!result.Success)
+            {
+                return BadRequest(result.Message);
+            }
+            return Ok("Book borrowed successfully");
+        }
+
+        [HttpPost("return")]
+        public async Task<ActionResult> Return(string bookUniqueID, string customerPassport)
+        {
+            if (string.IsNullOrEmpty(bookUniqueID) || string.IsNullOrEmpty(customerPassport))
+            {
+                return BadRequest("BookUniqueID and CustomerPassport cannot be empty");
+            }
+            var result = await _borrowService.ReturnBookAsync(bookUniqueID, customerPassport);
+            if (!result.Success)
+            {
+                return BadRequest(result.Message);
+            }
+            return Ok("Book returned successfully");
         }
     }
 }
