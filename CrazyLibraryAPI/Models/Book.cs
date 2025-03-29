@@ -32,5 +32,8 @@ namespace CrazyLibraryAPI.Models
         public int TotalCopies { get; set; }
 
         public int CopiesAvailable { get; set; }
+
+        [NotMapped]
+        public int BorrowCount { get; set; }
     }
 }

@@ -15,7 +15,7 @@ namespace CrazyLibraryAPI.Services
 
         public async Task<IEnumerable<Book>> SearchBooksAsync(string bookName, string authorFirstName, string authorLastName)
         {
-            return await _context.Books
+            var books = await _context.Books
                 .Include(b => b.Author)
                 .Where(b =>
                     (!string.IsNullOrEmpty(bookName) && b.Title.StartsWith(bookName)) ||
@@ -23,6 +23,11 @@ namespace CrazyLibraryAPI.Services
                     (!string.IsNullOrEmpty(authorLastName) && b.Author.LastName.StartsWith(authorLastName))
                 )
                 .ToListAsync();
+            foreach(Book book in books)
+            {
+                book.BorrowCount = await CountBookBorrowsAsync(book.UniqueID);
+            }
+            return books;
         }
 
         public async Task<Book?> GetBookByIdAsync(string id)
