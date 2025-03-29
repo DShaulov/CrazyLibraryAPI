@@ -22,7 +22,20 @@ builder.Services.AddDbContext<LibraryDbContext>(options =>
     options.UseMySql(connectionString, serverVersion);
 });
 
+// Allow requests from the React app
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp", builder =>
+    {
+        builder.WithOrigins("http://localhost:3000")
+               .AllowAnyHeader()
+               .AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
+
+app.UseCors("AllowReactApp");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

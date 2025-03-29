@@ -15,7 +15,7 @@ namespace CrazyLibraryAPI.Controllers
         }
 
         [HttpPost("search")]
-        public async Task<ActionResult<IEnumerable<BorrowedBookModel>>> Search(string identity)
+        public async Task<ActionResult<IEnumerable<BorrowedBookModel>>> Search([FromBody] string identity)
         {
             if (string.IsNullOrEmpty(identity))
             {
@@ -30,13 +30,13 @@ namespace CrazyLibraryAPI.Controllers
         }
 
         [HttpPost("borrow")]
-        public async Task<ActionResult> Borrow(string bookUniqueID, string customerPassport)
+        public async Task<ActionResult> Borrow([FromBody] BookActionRequestModel model)
         {
-            if (string.IsNullOrEmpty(bookUniqueID) || string.IsNullOrEmpty(customerPassport))
+            if (string.IsNullOrEmpty(model.BookUniqueID) || string.IsNullOrEmpty(model.CustomerPassport))
             {
                 return BadRequest("BookUniqueID and CustomerPassport cannot be empty");
             }
-            var result = await _borrowService.BorrowBookAsync(bookUniqueID, customerPassport);
+            var result = await _borrowService.BorrowBookAsync(model.BookUniqueID, model.CustomerPassport);
             if (!result.Success)
             {
                 return BadRequest(result.Message);
@@ -45,13 +45,13 @@ namespace CrazyLibraryAPI.Controllers
         }
 
         [HttpPost("return")]
-        public async Task<ActionResult> Return(string bookUniqueID, string customerPassport)
+        public async Task<ActionResult> Return([FromBody] BookActionRequestModel model)
         {
-            if (string.IsNullOrEmpty(bookUniqueID) || string.IsNullOrEmpty(customerPassport))
+            if (string.IsNullOrEmpty(model.BookUniqueID) || string.IsNullOrEmpty(model.CustomerPassport))
             {
                 return BadRequest("BookUniqueID and CustomerPassport cannot be empty");
             }
-            var result = await _borrowService.ReturnBookAsync(bookUniqueID, customerPassport);
+            var result = await _borrowService.ReturnBookAsync(model.BookUniqueID, model.CustomerPassport);
             if (!result.Success)
             {
                 return BadRequest(result.Message);

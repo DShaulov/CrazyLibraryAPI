@@ -24,7 +24,7 @@ namespace CrazyLibraryAPI.Controllers
                 (string.IsNullOrEmpty(searchModel.FirstName) &&
                 string.IsNullOrEmpty(searchModel.LastName) &&
                 string.IsNullOrEmpty(searchModel.Phone) &&
-                string.IsNullOrEmpty(searchModel.Identity)))
+                string.IsNullOrEmpty(searchModel.Passport)))
             {
                 return BadRequest("At least one search parameter is required.");
             }
@@ -33,7 +33,7 @@ namespace CrazyLibraryAPI.Controllers
                 searchModel.FirstName,
                 searchModel.LastName,
                 searchModel.Phone,
-                searchModel.Identity);
+                searchModel.Passport);
 
             if (customers == null || !customers.Any())
             {

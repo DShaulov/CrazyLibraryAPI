@@ -81,7 +81,7 @@ namespace CrazyLibraryAPI.Services
                 return (false, "Customer not found.");
             }
 
-            if (book.CopiesAvailable <= 0)
+            if (book.CopiesAvailable == 0)
             {
                 return (false, "No copies available for borrowing.");
             }
